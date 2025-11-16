@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Portfolio</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <header>
+        <h1>Hi, I'm Ayan Roy</h1>
+        <p class="tagline">Aspiring Web Developer | Designer | Tech Enthusiast</p>
+    </header>
+
+    <section class="intro-section">
+        <img id="profileImage" src="https://via.placeholder.com/200" alt="Profile Photo" class="profile-pic">
+
+        <div class="intro-text">
+            <h2>About Me</h2>
+            <p>
+                I am a passionate and creative web developer eager to build clean, 
+                user-friendly websites and applications. I love learning new technologies 
+                and turning ideas into digital solutions. Currently exploring JavaScript, 
+                React, and UI/UX design.
+            </p>
+
+            <!-- 📌 Image Upload Feature -->
+            <div class="upload-box">
+                <label for="imageUpload">Upload Your Photo:</label>
+                <input type="file" id="imageUpload" accept="image/*">
+            </div>
+        </div>
+    </section>
+
+    <section class="social-links">
+        <h2>Connect With Me</h2>
+        <ul>
+            <li><a href="https://www.linkedin.com" target="_blank">LinkedIn</a></li>
+            <li><a href="https://github.com" target="_blank">GitHub</a></li>
+            <li><a href="https://twitter.com" target="_blank">Twitter</a></li>
+        </ul>
+    </section>
+
+    <footer>
+        <p>© 2025 Ayan Roy. All Rights Reserved.</p>
+    </footer>
+
+    <!-- JavaScript to Load Image Preview -->
+    <script>
+        const imageInput = document.getElementById('imageUpload');
+        const profileImg = document.getElementById('profileImage');
+
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                profileImg.src = URL.createObjectURL(file);
+            }
+        });
+    </script>
+
+</body>
+</html>

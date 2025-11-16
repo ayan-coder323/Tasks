@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessory Studio — Product Gallery</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#9aa4b2;
+      --accent:#ff6b6b;
+      --surface:#0b1220;
+      --glass: rgba(255,255,255,0.03);
+      --radius:14px;
+      --gap:18px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,#071023 0%, #071728 100%);
+      color:#e6eef6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:28px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:22px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:14px;
+    }
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#f7b267);display:flex;align-items:center;justify-content:center;font-weight:700;color:#071023}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    /* toolbar */
+    .toolbar{
+      display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+    }
+    .search{
+      display:flex;align-items:center;background:var(--glass);padding:8px 12px;border-radius:12px;min-width:220px;gap:8px;
+    }
+    .search input{background:transparent;border:0;outline:0;color:inherit;font-size:14px}
+    .filters{display:flex;gap:8px;align-items:center}
+    .chip{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:999px;cursor:pointer;font-size:13px}
+    .chip.active{background:linear-gradient(90deg,rgba(255,107,107,0.15),rgba(247,178,103,0.08));border-color:rgba(255,107,107,0.3)}
+
+    /* gallery grid */
+    .gallery{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:var(--gap);
+      align-items:start;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: var(--radius);
+      padding:12px;
+      display:flex;flex-direction:column;gap:12px;min-height:260px;
+      transition:transform .18s ease, box-shadow .18s ease;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+
+    .media{display:block;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:4/3;background:linear-gradient(135deg,#102a43,#0b2b3b);}
+    .media img{width:100%;height:100%;object-fit:cover;display:block}
+
+    .meta{display:flex;flex-direction:column;gap:6px}
+    .title-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .title{font-weight:600;font-size:15px}
+    .price{font-weight:700}
+    .desc{color:var(--muted);font-size:13px}
+
+    .card-footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .btn{padding:8px 12px;border-radius:10px;border:0;cursor:pointer;background:linear-gradient(90deg,var(--accent),#f7b267);color:#071023;font-weight:600}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 10px;border-radius:10px}
+
+    /* empty state */
+    .empty{padding:40px;border-radius:14px;text-align:center;color:var(--muted);grid-column:1/-1;background:rgba(255,255,255,0.02)}
+
+    /* responsive tweaks */
+    @media (max-width:720px){
+      body{padding:18px}
+      header{flex-direction:column;align-items:flex-start;gap:12px}
+      .search{min-width:100%}
+    }
+
+    /* accessibility focus */
+    .chip:focus, .btn:focus, .ghost:focus, .card:focus{outline:2px solid rgba(255,107,107,0.18);outline-offset:2px}
+
+    /* quick view modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(1,6,12,0.6), rgba(1,6,12,0.85));z-index:60;padding:24px}
+    .modal.open{display:flex}
+    .modal-card{background:linear-gradient(180deg,#071022,#081226);border-radius:14px;padding:18px;max-width:900px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .modal .media{aspect-ratio:4/3}
+    .modal h2{margin:0}
+    .close{background:transparent;border:0;color:var(--muted);font-size:18px;padding:8px}
+
+    @media (max-width:860px){.modal-card{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">AS</div>
+      <div>
+        <h1>Accessory Studio</h1>
+        <p class="lead">Hand-picked accessories — scarves, caps & jewelry</p>
+      </div>
+    </div>
+
+    <div class="toolbar" role="region" aria-label="Gallery controls">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/></svg>
+        <input id="q" placeholder="Search products, e.g. 'beanie'" aria-label="Search products" />
+      </div>
+      <div class="filters" role="tablist" aria-label="Filter categories">
+        <button class="chip active" data-cat="all">All</button>
+        <button class="chip" data-cat="hats">Hats</button>
+        <button class="chip" data-cat="jewelry">Jewelry</button>
+        <button class="chip" data-cat="scarves">Scarves</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="gallery" id="gallery" aria-live="polite">
+      <!-- cards will be injected by JS -->
+    </section>
+  </main>
+
+  <!-- empty / no results -->
+  <template id="empty-tpl">
+    <div class="empty">No items match your search. Try clearing filters or searching a different term.</div>
+  </template>
+
+  <!-- card template -->
+  <template id="card-tpl">
+    <article class="card" tabindex="0">
+      <div class="media" aria-hidden>
+        <img loading="lazy" alt="Product image" />
+      </div>
+      <div class="meta">
+        <div class="title-row">
+          <div>
+            <div class="title"></div>
+            <div class="desc"></div>
+          </div>
+          <div class="price"></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn" data-action="quick">Quick View</button>
+        <button class="ghost" aria-label="Add to cart">Add</button>
+      </div>
+    </article>
+  </template>
+
+  <!-- modal quick view -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card">
+      <div class="media"><img alt="Quick view image"/></div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <h2 id="m-title"></h2>
+          <button class="close" data-action="close" aria-label="Close">✕</button>
+        </div>
+        <p id="m-desc" style="color:var(--muted)"></p>
+        <p id="m-price" style="font-weight:700;font-size:18px;margin-top:12px"></p>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button class="btn">Buy now</button>
+          <button class="ghost" data-action="close">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample dataset — replace with real products when ready
+const PRODUCTS = [
+  {
+    id: 1,
+    title: 'Knit Beanie',
+    cat: 'hats',
+    desc: 'Soft knit beanie — one size',
+    price: '₹349',
+    img: 'images/beanie.jpg'
+  },
+  {
+    id: 2,
+    title: 'Classic Scarf',
+    cat: 'scarves',
+    desc: 'Lightweight wool blend',
+    price: '₹899',
+    img: 'images/scarf.jpg'
+  },
+  {
+    id: 3,
+    title: 'Minimal Hoop Earrings',
+    cat: 'jewelry',
+    desc: 'Gold-plated hoops, 20mm',
+    price: '₹1199',
+    img: 'images/earrings.jpg'
+  },
+  {
+    id: 4,
+    title: 'Corduroy Cap',
+    cat: 'hats',
+    desc: 'Adjustable strap-back',
+    price: '₹599',
+    img: 'images/cap.jpg'
+  },
+  {
+    id: 5,
+    title: 'Silk Neck Scarf',
+    cat: 'scarves',
+    desc: 'Premium silk, 50x50cm',
+    price: '₹1499',
+    img: 'images/silk.jpg'
+  },
+  {
+    id: 6,
+    title: 'Layered Necklace',
+    cat: 'jewelry',
+    desc: 'Multi-chain, mixed metals',
+    price: '₹1299',
+    img: 'images/necklace.jpg'
+  },
+  {
+    id: 7,
+    title: 'Wool Fedora',
+    cat: 'hats',
+    desc: 'Structured fedora with band',
+    price: '₹2199',
+    img: 'images/fedora.jpg'
+  },
+  {
+    id: 8,
+    title: 'Tassel Earrings',
+    cat: 'jewelry',
+    desc: 'Cotton tassels, statement',
+    price: '₹799',
+    img: 'images/tassel.jpg'
+  }
+];
+
+
+
+
+    const gallery = document.getElementById('gallery');
+    const cardTpl = document.getElementById('card-tpl');
+    const emptyTpl = document.getElementById('empty-tpl');
+
+    function renderList(list){
+      gallery.innerHTML='';
+      if(list.length===0){
+        gallery.appendChild(emptyTpl.content.cloneNode(true));
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      list.forEach(p=>{
+        const el = cardTpl.content.cloneNode(true);
+        const article = el.querySelector('.card');
+        el.querySelector('img').src = p.img;
+        el.querySelector('img').alt = p.title + ' photo';
+        el.querySelector('.title').textContent = p.title;
+        el.querySelector('.desc').textContent = p.desc;
+        el.querySelector('.price').textContent = p.price;
+        el.querySelector('[data-action="quick"]').addEventListener('click', ()=>openModal(p));
+        // keyboard accessibility: Enter on card opens quick view
+        article.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ openModal(p);} });
+        frag.appendChild(el);
+      });
+      gallery.appendChild(frag);
+    }
+
+    // filtering
+    const chips = Array.from(document.querySelectorAll('.chip'));
+    const qInput = document.getElementById('q');
+    let activeCat = 'all';
+
+    chips.forEach(c=>c.addEventListener('click', ()=>{
+      chips.forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      activeCat = c.dataset.cat;
+      applyFilters();
+    }));
+
+    qInput.addEventListener('input', debounce(applyFilters, 180));
+
+    function applyFilters(){
+      const q = qInput.value.trim().toLowerCase();
+      let out = PRODUCTS.filter(p=> (activeCat==='all' || p.cat===activeCat));
+      if(q){ out = out.filter(p=> (p.title + ' ' + p.desc + ' ' + p.cat).toLowerCase().includes(q)); }
+      renderList(out);
+    }
+
+    // modal
+    const modal = document.getElementById('modal');
+    const mTitle = document.getElementById('m-title');
+    const mDesc = document.getElementById('m-desc');
+    const mPrice = document.getElementById('m-price');
+    const mImg = modal.querySelector('img');
+
+    function openModal(p){
+      mTitle.textContent = p.title;
+      mDesc.textContent = p.desc;
+      mPrice.textContent = p.price;
+      mImg.src = p.img;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+    }
+    function closeModal(){
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+    }
+    modal.addEventListener('click',(e)=>{ if(e.target===modal) closeModal(); });
+    modal.querySelectorAll('[data-action="close"]').forEach(b=>b.addEventListener('click',closeModal));
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+
+    // helpers
+    function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);}} 
+
+    function makePlaceholder(a,b,text){
+      // SVG data URL placeholder with two-tone gradient and label
+      const svg = encodeURIComponent(`
+        <svg xmlns='http://www.w3.org/2000/svg' width='1200' height='900'>
+          <defs>
+            <linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+              <stop offset='0' stop-color='${a}' />
+              <stop offset='1' stop-color='${b}' />
+            </linearGradient>
+          </defs>
+          <rect width='100%' height='100%' fill='url(#g)' rx='24'/>
+          <g font-family='sans-serif' fill='rgba(255,255,255,0.9)'>
+            <text x='50%' y='50%' text-anchor='middle' dy='-6' font-size='56' font-weight='700'>${text}</text>
+            <text x='50%' y='60%' text-anchor='middle' font-size='20' opacity='0.9'>Accessory Studio</text>
+          </g>
+        </svg>
+      `);
+      return `data:image/svg+xml;utf8,${svg}`;
+    }
+
+    // initial render
+    applyFilters();
+  </script>
+</body>
+</html>
